@@ -8,7 +8,7 @@ class Q():
         self.states = states
         self.actions = actions
         self.mem_size = 10000
-        self.q = np.zeros((states * 2 - 1, states * 2 - 1, actions), dtype=np.int16)
+        self.q = np.zeros((states * 2 - 1, states * 2 - 1, states * 2 - 1, states * 2 - 1, actions), dtype=np.int16)
 
         self.eap_mem = np.zeros((self.mem_size, size))
         self.eap_next_mem = np.zeros((self.mem_size, size))
@@ -26,10 +26,10 @@ class Q():
         self.act_mem[self.index] = action
         self.rew_mem[self.index] = reward
 
-        next_max_reward = np.max(self.q[eap_next[0]][eap_next[1]])
+        next_max_reward = np.max(self.q[eap_next[0]][eap_next[1]][eap_next[2]][eap_next[3]])
         new_reward = reward + 0.9 * next_max_reward
-        self.q[eap[0]][eap[1]][action] = new_reward
+        self.q[eap[0]][eap[1]][eap[2]][eap[3]][action] = new_reward
         
     
     def get_action(self, eap):
-        return np.argmax(self.q[eap[0]][eap[1]])
+        return np.argmax(self.q[eap[0]][eap[1]][eap[2]][eap[3]])

@@ -15,6 +15,7 @@ class Env():
         self.n_foo = 0
         self._make_env()
         self.closest_food_index = 0
+        self.closest_enemy_index = 0
         
         self.GROUND = 0
         self.ENEMY = 1
@@ -24,6 +25,7 @@ class Env():
         self.VISITED = 5
         
         self.ENEMY_COLOR = [0, 0, 255]
+        self.CLOSEST_FOOD = [51, 255, 255]
         self.FOOD_COLOR = [0, 128, 0]
         self.FOO_COLOR = [255, 0, 0]
         self.FOO_DEAD_COLOR = [64, 64, 64]
@@ -71,7 +73,7 @@ class Env():
     
     def get_env_at_pos(self, x, y):
         self._make_env()
-        eap = np.zeros(2, dtype=np.int16)
+        eap = np.zeros(4, dtype=np.int16)
 
         md = 99999999999999999999
         fx, fy = self.foo.get_pos()
@@ -89,6 +91,22 @@ class Env():
         eap[0] = self.food[0][closest_food_index] - fx + self.size - 1
         eap[1] = self.food[1][closest_food_index] - fy + self.size - 1
         self.closest_food_index = closest_food_index
+
+        md = 99999999999999999999
+        fx, fy = self.foo.get_pos()
+        closest_enemy_index = 0
+        for i in range(self.n_enemy):
+            cdx = fx - self.enemy[0][i]
+            cdx *= cdx
+            cdy = fy - self.enemy[1][i]
+            cdy *= cdy
+            if md > cdy + cdx:
+                md = cdy + cdx
+                closest_enemy_index = i
+        eap[2] = self.enemy[0][closest_enemy_index] - fx + self.size - 1
+        eap[3] = self.enemy[1][closest_enemy_index] - fy + self.size - 1
+        self.closest_enemy_index = closest_enemy_index
+
         return eap
 
 
@@ -100,7 +118,7 @@ class Env():
         visuals[self.env == self.FOO] = self.FOO_COLOR
         visuals[self.env == self.FOO_DEAD] = self.FOO_DEAD_COLOR
         visuals[self.env == self.VISITED] = self.VISITED_COLOR
-        visuals[self.food[0][self.closest_food_index]][self.food[1][self.closest_food_index]] = self.ENEMY_COLOR
+        visuals[self.food[0][self.closest_food_index]][self.food[1][self.closest_food_index]] = self.CLOSEST_FOOD
 
         img = Image.fromarray(visuals, 'RGB')
         img = img.resize((800, 800), Image.NEAREST)

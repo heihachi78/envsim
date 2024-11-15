@@ -15,7 +15,6 @@ class Foo():
         self.enemy_damage = enemy_damage
         self.action_space = 9
         self.food_collected = 0
-        self.score = 0
         self.reward = 0
 
 
@@ -44,9 +43,9 @@ class Foo():
             self.move(-1, -1)
 
 
-    def move_random(self, eap, qt):
+    def move_random(self, eap, qt, eps):
         if self.life > 0:
-            if np.random.rand() < 0.1:
+            if np.random.rand() < eps:
                 self.action = np.random.randint(self.action_space)
             else:
                 self.action = qt.get_action(eap)
@@ -66,14 +65,12 @@ class Foo():
             if self.posY >= self.env_size:
                 self.posY = self.env_size - 1
             self.life -= self.step_cost
-            self.score -= self.step_cost
             self.reward = -self.step_cost
 
     
     def eat(self):
         self.life += self.food_life
         self.food_collected += 1
-        self.score += self.food_life
         self.reward = self.food_life
         if self.life > self.max_life:
             self.life = self.max_life
@@ -81,5 +78,4 @@ class Foo():
     
     def fight(self):
         self.life -= self.enemy_damage
-        self.score -= self.enemy_damage
         self.reward = -self.enemy_damage
