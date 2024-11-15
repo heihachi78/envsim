@@ -14,6 +14,7 @@ class Env():
         self.n_enemy = 0
         self.n_foo = 0
         self._make_env()
+        self.closest_food_index = 0
         
         self.GROUND = 0
         self.ENEMY = 1
@@ -70,25 +71,24 @@ class Env():
     
     def get_env_at_pos(self, x, y):
         self._make_env()
-        eap = np.zeros(12, dtype=np.int16)
-        benv = np.ones((self.size + 3, self.size + 3)) * -1
-        benv[1:self.size+1, 1:self.size+1] = self.env.copy()
-        x += 1
-        y += 1
-        eap[0] = benv[x - 1, y - 1]
-        eap[1] = benv[x    , y - 1]
-        eap[2] = benv[x + 1, y - 1]
-        eap[3] = benv[x - 1, y]
-        eap[4] = benv[x + 1, y]
-        eap[5] = benv[x - 1, y + 1]
-        eap[6] = benv[x    , y + 1]
-        eap[7] = benv[x + 1, y + 1]
+        eap = np.zeros(2, dtype=np.int16)
 
-        eap[8] = benv[x, y + 2]
-        eap[9] = benv[x, y - 2]
-        eap[10] = benv[x + 2, y]
-        eap[11] = benv[x - 2, y]
-
+        md = 99999999999999999999
+        fx, fy = self.foo.get_pos()
+        closest_food_index = 0
+        for i in range(self.n_food):
+            if (self.food[0][i], self.food[1][i]) in self.foo_visited:
+                continue
+            cdx = fx - self.food[0][i]
+            cdx *= cdx
+            cdy = fy - self.food[1][i]
+            cdy *= cdy
+            if md > cdy + cdx:
+                md = cdy + cdx
+                closest_food_index = i
+        eap[0] = self.food[0][closest_food_index] - fx + self.size - 1
+        eap[1] = self.food[1][closest_food_index] - fy + self.size - 1
+        self.closest_food_index = closest_food_index
         return eap
 
 
@@ -100,6 +100,8 @@ class Env():
         visuals[self.env == self.FOO] = self.FOO_COLOR
         visuals[self.env == self.FOO_DEAD] = self.FOO_DEAD_COLOR
         visuals[self.env == self.VISITED] = self.VISITED_COLOR
+        visuals[self.food[0][self.closest_food_index]][self.food[1][self.closest_food_index]] = self.ENEMY_COLOR
+
         img = Image.fromarray(visuals, 'RGB')
         img = img.resize((800, 800), Image.NEAREST)
         cv2.imshow('env', np.array(img))

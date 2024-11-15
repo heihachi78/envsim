@@ -6,17 +6,17 @@ from foo import Foo
 from learn import Q
 
 
-VISUALS_SPEED = 100
-ENV_SIZE = 10
-N_FOOD = 10
-N_ENEMY = 3
+VISUALS_SPEED = 10
+ENV_SIZE = 100
+N_FOOD = 1000
+N_ENEMY = 0
 MAX_LIFE = 100
 FOO_STEP_COST = 1
 FOO_FOOD_LIFE = 25
 FOO_ENEMY_DAMAGE = 100
 
 
-qt = Q(states=6, size=12, actions=9)
+qt = Q(states=ENV_SIZE, size=2, actions=9)
 
 for e in range(100000):
     env = Env(size=ENV_SIZE)
@@ -30,7 +30,7 @@ for e in range(100000):
         foo.move_random(eap_old, qt)
         eap_next = env.get_env_at_pos(x=foo.posX, y=foo.posY)
         qt.store(eap_old, foo.action, foo.reward, eap_next)
-        if not e % 250:
+        if not e % 5:
             env.visualize(VISUALS_SPEED)
         eap_old = eap_next
     print(e, np.round(np.sum(qt.q), 2), foo.food_collected, foo.score)
