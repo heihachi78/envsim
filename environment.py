@@ -32,6 +32,8 @@ class Env():
         self.VISITED_COLOR = [128, 128, 128]
 
         self.foo_visited = list()
+        self.return_size = 4
+        self.return_states_high_value = self.decode(''.join([str(self.size-1) for k in range(self.return_size)]), self.size)
 
 
     def add_food(self, amount):
@@ -49,7 +51,17 @@ class Env():
     def add_foo(self, foo : Foo):
         self.n_foo = 1
         self.foo = foo
-
+        regen_pos = True
+        while regen_pos:
+            regen_pos = False
+            foo.posX = np.random.randint(self.size)
+            foo.posY = np.random.randint(self.size)
+            for f in range(self.n_food):
+                if self.food[0][f] == foo.posX and self.food[1][f] == foo.posY:
+                  regen_pos = True
+            for e in range(self.n_enemy):
+                if self.enemy[0][e] == foo.posX and self.enemy[1][e] == foo.posY:
+                  regen_pos = True
 
     def _make_env(self):
         self.env = np.zeros((self.size, self.size), dtype=np.uint8)
@@ -70,10 +82,24 @@ class Env():
                 self.env[self.foo.get_pos()] = self.FOO_DEAD
             self.foo_visited.append(self.foo.get_pos())
 
+    def encode(self, number, base):
+        if not number:
+            return ['0']
+        digits = []
+        while number:
+            digits.append(str(number % base))
+            number //= base
+        return list(reversed(digits))
+
+    def decode(self, number, base):
+        try:
+            return int(''.join([str(a) for a in number]), base)
+        except:
+            return 0
     
     def get_env_at_pos(self, x, y):
         self._make_env()
-        eap = np.zeros(4, dtype=np.int16)
+        eap = np.zeros(self.return_size, dtype=np.int16)
 
         md = 99999999999999999999
         fx, fy = self.foo.get_pos()
@@ -88,8 +114,8 @@ class Env():
             if md > cdy + cdx:
                 md = cdy + cdx
                 closest_food_index = i
-        eap[0] = self.food[0][closest_food_index] - fx + self.size - 1
-        eap[1] = self.food[1][closest_food_index] - fy + self.size - 1
+        eap[0] = (self.food[0][closest_food_index] - fx)
+        eap[1] = (self.food[1][closest_food_index] - fy)
         self.closest_food_index = closest_food_index
 
         md = 99999999999999999999
@@ -103,11 +129,13 @@ class Env():
             if md > cdy + cdx:
                 md = cdy + cdx
                 closest_enemy_index = i
-        eap[2] = self.enemy[0][closest_enemy_index] - fx + self.size - 1
-        eap[3] = self.enemy[1][closest_enemy_index] - fy + self.size - 1
+        eap[2] = (self.enemy[0][closest_enemy_index] - fx)
+        eap[3] = (self.enemy[1][closest_enemy_index] - fy)
         self.closest_enemy_index = closest_enemy_index
 
-        return eap
+        r = eap + self.size
+        r = r - min(r)
+        return self.decode(r, self.size)
 
 
     def visualize(self, speed):

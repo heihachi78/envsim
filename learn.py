@@ -3,33 +3,30 @@ import numpy as np
 
 class Q():
 
-    def __init__(self, size, states, actions):
-        self.size = size
+    def __init__(self, states, actions):
         self.states = states
         self.actions = actions
-        self.mem_size = 10000
-        self.q = np.zeros((states * 2 - 1, states * 2 - 1, states * 2 - 1, states * 2 - 1, actions), dtype=np.int16)
+        self.q2 = dict()
 
-        self.eap_mem = np.zeros((self.mem_size, size))
-        self.eap_next_mem = np.zeros((self.mem_size, size))
-        self.act_mem = np.zeros((self.mem_size))
-        self.rew_mem = np.zeros((self.mem_size))
+    def store(self, current_state, action, reward, next_state):
+        keysList = list(self.q2.keys())
+        new_reward = 0
+        if next_state not in keysList:
+            new_reward = reward
+        else:
+            keysList2 = list(self.q2[next_state].keys())
+            if action not in keysList2:
+                new_reward = reward
+            else:
+                new_reward = reward + 0.9 * self.q2[next_state][action]
 
-        self.counter = 0
-        self.index = 0
-
-
-    def store(self, eap, action, reward, eap_next):
-        self.index = self.counter%self.mem_size
-        self.eap_mem[self.index] = eap.copy()
-        self.eap_next_mem [self.index] = eap_next.copy()
-        self.act_mem[self.index] = action
-        self.rew_mem[self.index] = reward
-
-        next_max_reward = np.max(self.q[eap_next[0]][eap_next[1]][eap_next[2]][eap_next[3]])
-        new_reward = reward + 0.9 * next_max_reward
-        self.q[eap[0]][eap[1]][eap[2]][eap[3]][action] = new_reward
-        
+        if current_state not in keysList:
+            self.q2[current_state] = {action : new_reward}
+        else:
+            self.q2[current_state][action] = new_reward
     
-    def get_action(self, eap):
-        return np.argmax(self.q[eap[0]][eap[1]][eap[2]][eap[3]])
+    def get_action(self, current_state):
+        try:
+            return max(self.q2[current_state].values())
+        except:
+            return np.random.randint(self.actions)
